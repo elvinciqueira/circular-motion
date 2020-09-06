@@ -97,12 +97,6 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/utils.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_utils__WEBPACK_IMPORTED_MODULE_0__);
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
 
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
@@ -112,7 +106,7 @@ var mouse = {
   x: innerWidth / 2,
   y: innerHeight / 2
 };
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66']; // Event Listeners
+var colors = ['#00bdff', '#4d39ce', '#088eff']; // Event Listeners
 
 addEventListener('mousemove', function (event) {
   mouse.x = event.clientX;
@@ -124,52 +118,72 @@ addEventListener('resize', function () {
   init();
 }); // Objects
 
-var _Object = /*#__PURE__*/function () {
-  function Object(x, y, radius, color) {
-    _classCallCheck(this, Object);
+function Particle(x, y, radius, color) {
+  var _this = this;
 
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = color;
-  }
+  var distance = Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomIntFromRange"])(50, 120);
+  this.x = x;
+  this.y = y;
+  this.radius = radius;
+  this.color = color;
+  this.radians = Math.random() * Math.PI * 2;
+  this.velocity = 0.05;
+  this.distanceFromCenter = distance;
+  this.lastMouse = {
+    x: x,
+    y: y
+  };
 
-  _createClass(Object, [{
-    key: "draw",
-    value: function draw() {
-      c.beginPath();
-      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-      c.fillStyle = this.color;
-      c.fill();
-      c.closePath();
-    }
-  }, {
-    key: "update",
-    value: function update() {
-      this.draw();
-    }
-  }]);
+  this.update = function () {
+    var lastPoint = {
+      x: _this.x,
+      y: _this.y
+    }; //move particles over time
 
-  return Object;
-}(); // Implementation
+    _this.radians += _this.velocity; // Drag Effect
+
+    _this.lastMouse.x += (mouse.x - _this.lastMouse.x) * 0.05;
+    _this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05; //Circular Motion
+
+    _this.x = _this.lastMouse.x + Math.cos(_this.radians) * _this.distanceFromCenter;
+    _this.y = _this.lastMouse.y + Math.sin(_this.radians) * _this.distanceFromCenter;
+
+    _this.draw(lastPoint);
+  };
+
+  this.draw = function (_ref) {
+    var x = _ref.x,
+        y = _ref.y;
+    c.beginPath();
+    c.strokeStyle = _this.color;
+    c.lineWidth = _this.radius;
+    c.moveTo(x, y);
+    c.lineTo(_this.x, _this.y);
+    c.stroke();
+    c.closePath();
+  };
+} // Implementation
 
 
-var objects;
+var particles;
 
 function init() {
-  objects = [];
+  particles = [];
 
-  for (var i = 0; i < 400; i++) {// objects.push()
+  for (var i = 0; i < 50; i++) {
+    var radius = Math.random() * 2 + 1;
+    particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, Object(_utils__WEBPACK_IMPORTED_MODULE_0__["randomColor"])(colors)));
   }
 } // Animation Loop
 
 
 function animate() {
   requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillText('HTML CANVAS BOILERPLATE', mouse.x, mouse.y); // objects.forEach(object => {
-  //  object.update()
-  // })
+  c.fillStyle = "rgba(255, 255, 255, 0.05)";
+  c.fillRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(function (particle) {
+    particle.update();
+  });
 }
 
 init();
